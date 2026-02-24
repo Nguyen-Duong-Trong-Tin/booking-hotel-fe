@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Home from "./pages/clients/Home";
+import Home from "./pages/clients/home";
+import Rooms from "./pages/clients/room";
 import AdminLogin from "./pages/admins/auth/AdminLogin";
 import AdminDashboard from "./pages/admins/dashboard/AdminDashboard";
 import AdminCategoryPage from "./pages/admins/categories";
@@ -17,6 +18,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/rooms" element={<Rooms />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboard />} />

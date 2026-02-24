@@ -1,22 +1,14 @@
 import { Button, Card, Layout, Typography } from "antd";
-import { Link } from "react-router-dom";
+import ClientFooter from "../../../components/layout/ClientFooter";
+import ClientHeader from "../../../components/layout/ClientHeader";
 
-const { Header, Content, Footer } = Layout;
+const { Content } = Layout;
 const { Title, Text } = Typography;
 
 export default function Home() {
   return (
     <Layout className="min-h-screen">
-      <Header className="bg-white border-b border-slate-200 flex items-center">
-        <div className="w-full max-w-6xl mx-auto flex items-center justify-between px-6">
-          <Title level={3} className="!mb-0">
-            Booking Hotel
-          </Title>
-          <Link to="/admin/login">
-            <Button type="primary">Admin Login</Button>
-          </Link>
-        </div>
-      </Header>
+      <ClientHeader />
       <Content className="px-4 py-10">
         <div className="w-full max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -51,9 +43,7 @@ export default function Home() {
           </div>
         </div>
       </Content>
-      <Footer className="text-center text-slate-500">
-        © 2026 Booking Hotel. All rights reserved.
-      </Footer>
+      <ClientFooter />
     </Layout>
   );
 }
