@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 // Đã thêm Typography vào import
 import { Button, Card, Space, Typography, message } from "antd";
 import { getRooms, createRoom, updateRoom, deleteRoom } from "../../../apis/roomApi";
+import { uploadRoomImages } from "../../../apis/roomImageApi";
 import { getCategories } from "../../../apis/categoryApi";
 import AdminLayout from "../auth/AdminLayout";
 import AdminRoomList from "./AdminRoomList";
@@ -62,7 +63,31 @@ export default function AdminRoomPage() {
   const handleCreate = async (values) => {
     setModalLoading(true);
     try {
-      await createRoom(values);
+      const { images, presentativeUid, ...payload } = values;
+      const roomRes = await createRoom(payload);
+      const roomId = roomRes?.data?.id;
+
+      if (roomId && images?.length) {
+        const files = images
+          .map((item) => item.originFileObj)
+          .filter(Boolean);
+        const presentativeIndex = presentativeUid
+          ? images.findIndex((item) => item.uid === presentativeUid)
+          : null;
+
+        if (files.length) {
+          try {
+            await uploadRoomImages({
+              roomId,
+              images: files,
+              presentativeIndex: presentativeIndex >= 0 ? presentativeIndex : null
+            });
+          } catch (uploadError) {
+            messageApi.error("Room created, but image upload failed.");
+          }
+        }
+      }
+
       messageApi.success("Room created successfully");
       setIsCreateOpen(false);
       loadData(0);
@@ -75,7 +100,30 @@ export default function AdminRoomPage() {
   const handleUpdate = async (values) => {
     setModalLoading(true);
     try {
-      await updateRoom(editingRoom.id, values);
+      const { images, presentativeUid, ...payload } = values;
+      await updateRoom(editingRoom.id, payload);
+
+      if (images?.length) {
+        const files = images
+          .map((item) => item.originFileObj)
+          .filter(Boolean);
+        const presentativeIndex = presentativeUid
+          ? images.findIndex((item) => item.uid === presentativeUid)
+          : null;
+
+        if (files.length) {
+          try {
+            await uploadRoomImages({
+              roomId: editingRoom.id,
+              images: files,
+              presentativeIndex: presentativeIndex >= 0 ? presentativeIndex : null
+            });
+          } catch (uploadError) {
+            messageApi.error("Room updated, but image upload failed.");
+          }
+        }
+      }
+
       messageApi.success("Room updated successfully");
       setEditingRoom(null);
       loadData();
