@@ -10,6 +10,34 @@ const getSelectedKey = (pathname) => {
     return "categories";
   }
 
+  if (pathname.startsWith("/admin/users")) {
+    return "users";
+  }
+
+  if (pathname.startsWith("/admin/roles")) {
+    return "roles";
+  }
+
+  if (pathname.startsWith("/admin/bookings")) {
+    return "bookings";
+  }
+
+  if (pathname.startsWith("/admin/payments")) {
+    return "payments";
+  }
+
+  if (pathname.startsWith("/admin/rooms")) {
+    return "rooms";
+  }
+
+  if (pathname.startsWith("/admin/amenities")) {
+    return "amenities";
+  }
+
+  if (pathname.startsWith("/admin/room-amenities")) {
+    return "room-amenities";
+  }
+
   return "dashboard";
 };
 
@@ -41,10 +69,47 @@ export default function AdminLayout({ children }) {
               key: "dashboard",
               label: <Link to="/admin">Dashboard</Link>
             },
+            
+            {
+              key: "roles",
+              label: <Link to="/admin/roles">Roles</Link>
+            },
+               
+            {
+              key: "users",
+              label: <Link to="/admin/users">Users</Link>
+            },
+
+            {
+              key: "bookings",
+              label: <Link to="/admin/bookings">Bookings</Link>
+            },
+
+            {
+              key: "payments",
+              label: <Link to="/admin/payments">Payments</Link>
+            },
+
             {
               key: "categories",
               label: <Link to="/admin/categories">Categories</Link>
-            }
+            },
+            
+            {
+              key: "rooms",
+              label: <Link to="/admin/rooms">Rooms</Link>
+            },
+
+            {
+              key: "amenities",
+              label: <Link to="/admin/amenities">Amenities</Link>
+            },
+
+            {
+              key: "room-amenities",
+              label: <Link to="/admin/room-amenities">Room Amenities</Link>
+            },
+
           ]}
         />
       </Sider>

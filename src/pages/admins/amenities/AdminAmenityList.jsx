@@ -1,38 +1,30 @@
-import { Table, Button, Space, Tooltip } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import AdminCategoryDelete from "./AdminCategoryDelete";
+import { Table, Button, Space, Avatar, Tooltip } from "antd";
+import { EditOutlined } from "@ant-design/icons";
+import AdminAmenityDelete from "./AdminAmenityDelete";
 
-export default function AdminCategoryList({
-  categories,
-  loading,
-  pagination,
-  onTableChange,
-  onEdit,
-  onDelete
-}) {
+export default function AdminAmenityList({ amenities, loading, pagination, onTableChange, onEdit, onDelete }) {
   const columns = [
     {
-      title: "ID",
-      dataIndex: "id",
-      width: 80
+      title: "Icon",
+      dataIndex: "iconUrl",
+      key: "iconUrl",
+      width: 80,
+      render: (url) => <Avatar src={url} shape="square" size="large" icon={!url && "A"} />,
     },
     {
-      title: "Name",
+      title: "Amenity Name",
       dataIndex: "name",
+      key: "name",
+      sorter: true,
       render: (text) => <span style={{ fontWeight: 500 }}>{text}</span>
-    },
-    {
-      title: "Description",
-      dataIndex: "description",
-      render: (value) => value || "-"
     },
     {
       title: "Actions",
       key: "actions",
-      width: 120,
+      width: 150,
       render: (_, record) => (
         <Space size="small">
-          {/* Nút sửa: Màu đen, có viền bao */}
+          {/* Nút sửa: Đen, có viền bao */}
           <Tooltip title="Edit">
             <Button 
               style={{ 
@@ -47,25 +39,24 @@ export default function AdminCategoryList({
             />
           </Tooltip>
 
-          {/* Nút xóa: Hiện tại gọi component AdminCategoryDelete */}
+          {/* Nút xóa: Component riêng sẽ xử lý viền đỏ */}
           <Tooltip title="Delete">
-            <AdminCategoryDelete onConfirm={() => onDelete(record.id)} />
+            <AdminAmenityDelete onConfirm={() => onDelete(record.id)} />
           </Tooltip>
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <Table
-      rowKey="id"
       columns={columns}
-      dataSource={categories}
+      dataSource={amenities}
+      rowKey="id"
       loading={loading}
       pagination={pagination}
       onChange={onTableChange}
-      className="mt-4"
-      bordered
+      bordered // Thêm viền bảng cho chuyên nghiệp
       size="middle"
     />
   );
