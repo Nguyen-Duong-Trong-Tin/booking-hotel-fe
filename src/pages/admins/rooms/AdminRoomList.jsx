@@ -1,7 +1,23 @@
-import { Table, Tag, Space, Button, Popconfirm, Image } from "antd";
+import { Table, Tag, Space, Button, Popconfirm, Image, message } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useState } from "react";
 
 export default function AdminRoomList({ data, loading, pagination, onTableChange, onEdit, onDelete }) {
+  // 1. Thêm state để quản lý loading khi đang xóa
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDelete = async (id) => {
+    setDeletingId(id);
+    try {
+      await onDelete(id);
+      // message.success("Room deleted successfully"); // Tùy chọn nếu onUpdate chưa thông báo
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const columns = [
     {
       title: "Image",
@@ -9,7 +25,7 @@ export default function AdminRoomList({ data, loading, pagination, onTableChange
       render: (_, record) => {
         const presentative = (record.roomImages || []).find((img) => img.isPresentative);
         if (!presentative?.url) {
-          return <span className="text-gray-400">No image</span>;
+          return <span className="text-gray-400 text-xs">No image</span>;
         }
 
         return (
@@ -47,14 +63,39 @@ export default function AdminRoomList({ data, loading, pagination, onTableChange
       title: "Actions",
       render: (_, record) => (
         <Space>
-          <Button icon={<EditOutlined />} onClick={() => onEdit(record)} />
-          <Popconfirm title="Delete room?" onConfirm={() => onDelete(record.id)}>
-            <Button danger icon={<DeleteOutlined />} />
+          <Button 
+            icon={<EditOutlined />} 
+            onClick={() => onEdit(record)} 
+            disabled={deletingId === record.id} // Vô hiệu hóa khi đang xóa
+          />
+          <Popconfirm 
+            title="Delete room?" 
+            description="This action cannot be undone."
+            onConfirm={() => handleDelete(record.id)}
+            okButtonProps={{ 
+              danger: true, 
+              loading: deletingId === record.id // Hiện icon xoay tròn khi đang đợi API
+            }}
+          >
+            <Button 
+              danger 
+              icon={<DeleteOutlined />} 
+              loading={deletingId === record.id} // Hiện loading trên chính nút xóa
+            />
           </Popconfirm>
         </Space>
       )
     }
   ];
 
-  return <Table columns={columns} dataSource={data} rowKey="id" loading={loading} pagination={pagination} onChange={onTableChange} />;
+  return (
+    <Table 
+      columns={columns} 
+      dataSource={data} 
+      rowKey="id" 
+      loading={loading} 
+      pagination={pagination} 
+      onChange={onTableChange} 
+    />
+  );
 }
