@@ -39,3 +39,4 @@ export const deleteRoomAmenity = async (id) => {
   const response = await apiClient.delete(`/v1/room-amenities/${id}`);
   return response.data;
 };
+

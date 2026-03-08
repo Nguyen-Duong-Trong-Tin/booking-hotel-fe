@@ -1,116 +1,99 @@
-import { Table, Button, Space, Popconfirm, Avatar, Tag, Typography } from "antd";
-import { EditOutlined, DeleteOutlined, PictureOutlined } from "@ant-design/icons";
+import { Table, Space, Avatar, Tag, Typography, Tooltip } from "antd";
+import { AppstoreOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
-export default function AdminRoomAmenityList({ data, loading, pagination, onTableChange, onEdit, onDelete }) {
+export default function AdminRoomAmenityList({ data, loading, onTableChange, onDelete }) {
   
-  // Màu sắc và độ dày viền phân cách (Bạn có thể chỉnh ở đây)
-  const groupBorderStyle = '2px solid #333'; // Màu xám đậm để phân chia rõ nhất
-
-  // Logic gộp ô cho cột Room và Category
-  const sharedOnCell = (record, index) => {
-    const sameRoomRows = data.filter(item => item.room?.roomNumber === record.room?.roomNumber);
-    const firstRowIndex = data.findIndex(item => item.room?.roomNumber === record.room?.roomNumber);
-    const isFirstRowOfGroup = index === firstRowIndex;
-
-    const style = { verticalAlign: 'middle' };
-    // Thêm viền trên nếu là dòng đầu tiên của một nhóm mới (trừ dòng đầu tiên của bảng)
-    if (isFirstRowOfGroup && index !== 0) {
-      style.borderTop = groupBorderStyle;
-    }
-
-    return {
-      rowSpan: isFirstRowOfGroup ? sameRoomRows.length : 0,
-      style: style
-    };
-  };
-
-  // Logic viền cho các cột không gộp ô (Amenity, Description, Actions)
-  const nonGroupedOnCell = (record, index) => {
-    const firstRowIndex = data.findIndex(item => item.room?.roomNumber === record.room?.roomNumber);
-    if (index === firstRowIndex && index !== 0) {
-      return { style: { borderTop: groupBorderStyle } };
-    }
-    return {};
-  };
+  // --- LOGIC GỘP DỮ LIỆU (Giữ nguyên) ---
+  const groupedData = Object.values(
+    (data || []).reduce((acc, item) => {
+      const roomId = item.room?.id;
+      if (!acc[roomId]) {
+        acc[roomId] = {
+          key: roomId,
+          room: item.room,
+          amenitiesList: [],
+        };
+      }
+      acc[roomId].amenitiesList.push({
+        relationId: item.id,
+        name: item.amenity?.name,
+        icon: item.amenity?.iconUrl,
+        description: item.description
+      });
+      return acc;
+    }, {})
+  ).sort((a, b) => {
+    const catCompare = (a.room?.category?.name || "").localeCompare(b.room?.category?.name || "");
+    if (catCompare !== 0) return catCompare;
+    return (a.room?.roomNumber || "").localeCompare(b.room?.roomNumber || "", undefined, { numeric: true });
+  });
 
   const columns = [
     {
-      title: "Room",
-      dataIndex: ["room", "roomNumber"],
+      title: "Room Number",
       key: "roomNumber",
-      width: 100,
-      align: "center",
-      onCell: sharedOnCell,
-      render: (text) => <Tag color="blue" style={{ fontWeight: 'bold' }}>Room {text}</Tag>
-    },
-    {
-      title: "Category",
-      dataIndex: ["room", "category", "name"],
-      key: "category",
-      width: 130,
-      align: "center",
-      onCell: sharedOnCell,
-      render: (name) => <Text strong>{name || "N/A"}</Text>
-    },
-    {
-      title: "Amenity",
-      key: "amenity",
-      onCell: nonGroupedOnCell,
+      width: 180,
       render: (_, record) => (
-        <Space size="middle">
-          {record.amenity?.iconUrl ? (
-            <Avatar src={record.amenity.iconUrl} shape="square" size="large" />
-          ) : (
-            <Avatar shape="square" size="large" icon={<PictureOutlined />} />
+        <Space direction="vertical" size={0}>
+          <Text strong style={{ fontSize: '15px', color: '#1890ff' }}>
+            Room {record.room?.roomNumber}
+          </Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            {record.room?.category?.name}
+          </Text>
+        </Space>
+      ),
+    },
+    {
+      title: "Assigned Amenities",
+      key: "amenities",
+      render: (_, record) => (
+        <Space wrap size={[8, 8]}>
+          {record.amenitiesList.map((amt) => (
+            <Tooltip title={amt.description || "No description"} key={amt.relationId}>
+              <Tag 
+                closable 
+                onClose={(e) => {
+                  e.preventDefault();
+                  onDelete(amt.relationId);
+                }}
+                icon={amt.icon ? <Avatar src={amt.icon} size={14} /> : <AppstoreOutlined />}
+                style={{ 
+                  padding: '4px 10px', 
+                  borderRadius: '16px', 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  backgroundColor: '#f0f5ff',
+                  border: '1px solid #adc6ff'
+                }}
+              >
+                {amt.name}
+              </Tag>
+            </Tooltip>
+          ))}
+          {record.amenitiesList.length === 0 && (
+            <Text type="secondary" italic>No amenities assigned</Text>
           )}
-          <Text strong>{record.amenity?.name}</Text>
         </Space>
       ),
-    },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-      onCell: nonGroupedOnCell,
-      render: (text) => text || <Text type="secondary" italic>No notes</Text>
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 120,
-      align: "center",
-      onCell: nonGroupedOnCell,
-      render: (_, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} onClick={() => onEdit(record)} />
-          <Popconfirm title="Remove Amenity" onConfirm={() => onDelete(record.id)}>
-            <Button danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      ),
-    },
+    }
   ];
 
   return (
     <Table
       columns={columns}
-      dataSource={data
-        ?.sort((a, b) => (a.room?.roomNumber > b.room?.roomNumber ? 1 : -1))
-        .map(item => ({ ...item, key: item.id }))
-      }
+      dataSource={groupedData}
       loading={loading}
-      pagination={pagination}
+      pagination={{
+        pageSize: 10,
+        showSizeChanger: true,
+        pageSizeOptions: ['10', '20', '50'],
+        position: ['bottomRight']
+      }}
       onChange={onTableChange}
       bordered
-      components={{
-        header: {
-          cell: (props) => (
-            <th {...props} style={{ ...props.style, backgroundColor: '#f0f2f5', fontWeight: 'bold', borderBottom: '2px solid #d9d9d9' }} />
-          ),
-        },
-      }}
     />
   );
 }

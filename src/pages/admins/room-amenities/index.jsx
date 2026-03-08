@@ -24,68 +24,82 @@ export default function AdminRoomAmenityPage() {
   const [loading, setLoading] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(0);
   const [filters, setFilters] = useState({ roomId: undefined, amenityId: undefined });
-
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
   const extractError = (error) => {
     const serverData = error?.response?.data;
-    if (error?.response?.status === 403) return "Access Denied: Your session may have expired.";
+    if (error?.response?.status === 403) return "Access Denied: Session expired.";
     return (serverData?.errors && serverData?.errors[0]) || serverData?.message || "An unexpected error occurred.";
   };
 
-  const loadData = async (nextPage = page, nextSize = size, nextFilters = filters) => {
+  /**
+   * LOAD DATA: Lấy toàn bộ dữ liệu quan hệ (size lớn) 
+   * để Frontend tự thực hiện gộp nhóm theo Phòng.
+   */
+  const loadData = async (nextFilters = filters) => {
     setLoading(true);
     try {
-      const res = await getRoomAmenities({ page: nextPage, size: nextSize, ...nextFilters });
+      // Tăng size lên 1000 để tránh việc Backend ngắt trang làm mất tiện ích của phòng cuối trang
+      const res = await getRoomAmenities({ 
+        page: 0, 
+        size: 1000, 
+        ...nextFilters 
+      });
+      
+      // Data này là mảng các dòng lẻ, Component List sẽ tự gộp lại thành từng dòng theo Phòng
       setData(res?.data?.items || []);
-      setTotalPages(res?.data?.totalPages || 0);
 
+      // Load dữ liệu hỗ trợ nếu chưa có
       if (rooms.length === 0) {
-        const rRes = await getRooms({ page: 0, size: 100 });
+        const rRes = await getRooms({ page: 0, size: 200 });
         setRooms(rRes?.data?.items || []);
       }
       if (amenities.length === 0) {
-        const aRes = await getAmenities({ page: 0, size: 100 });
+        const aRes = await getAmenities({ page: 0, size: 200 });
         setAmenities(aRes?.data?.items || []);
       }
     } catch (error) {
       messageApi.error(extractError(error));
-    } finally { setLoading(false); }
+    } finally { 
+      setLoading(false); 
+    }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { 
+    loadData(); 
+  }, []);
 
   const handleDelete = async (id) => {
     try {
       await deleteRoomAmenity(id);
-      messageApi.success("Amenity removed from room successfully");
+      messageApi.success("Amenity removed successfully");
       loadData();
     } catch (error) {
       messageApi.error(extractError(error));
     }
   };
 
-  // --- UPDATED LOGIC FOR MULTIPLE ASSIGNMENT ---
+  /**
+   * CREATE: Gán nhiều tiện ích cho phòng
+   * Lưu ý: Nếu Backend có API Sync (nhận mảng ID) thì nên đổi sang dùng Sync sẽ tốt hơn
+   */
   const handleCreate = async (values) => {
     setModalLoading(true);
     try {
       const { roomId, amenityIds, description } = values;
 
-      // Map through each selected amenity ID and create an assignment request
+      // Gọi API tạo cho từng tiện ích được chọn
       await Promise.all(
         amenityIds.map((amenityId) =>
           createRoomAmenity({ roomId, amenityId, description })
         )
       );
 
-      messageApi.success(`Successfully assigned ${amenityIds.length} amenities to the room`);
+      messageApi.success(`Successfully assigned ${amenityIds.length} amenities`);
       setIsCreateOpen(false);
-      loadData(0); // Refresh to page 1 to see the new grouped data
+      loadData(); 
     } catch (error) {
       messageApi.error(extractError(error));
     } finally {
@@ -97,41 +111,48 @@ export default function AdminRoomAmenityPage() {
     setModalLoading(true);
     try {
       await updateRoomAmenity(editingItem.id, values);
-      messageApi.success("Room amenity updated successfully");
+      messageApi.success("Updated successfully");
       setEditingItem(null);
       loadData();
     } catch (error) {
       messageApi.error(extractError(error));
-    } finally { setModalLoading(false); }
+    } finally { 
+      setModalLoading(false); 
+    }
   };
 
   return (
     <AdminLayout>
       {contextHolder}
-      <Space direction="vertical" size={24} className="w-full">
+      <Space direction="vertical" size={24} className="w-full" style={{ width: '100%' }}>
         <div>
-          <Title level={2} className="!mb-1">Room Amenities</Title>
-          <Text type="secondary">Assign and manage multiple amenities for each specific room.</Text>
+          <Title level={2} className="!mb-1">Room Amenities Management</Title>
+          <Text type="secondary">Manage facilities and services for each room type and specific room number.</Text>
         </div>
 
         <Card className="shadow-sm">
           <AdminRoomAmenitySearch 
             rooms={rooms}
             amenities={amenities}
-            onSearch={(f) => { setFilters(f); setPage(0); loadData(0, size, f); }} 
+            onSearch={(f) => { 
+              setFilters(f); 
+              loadData(f); 
+            }} 
           />
         </Card>
 
         <Card className="shadow-sm">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-            <Title level={4}>Assignment List</Title>
-            <Button type="primary" onClick={() => setIsCreateOpen(true)}>Assign Multiple Amenities</Button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, alignItems: 'center' }}>
+            <Title level={4} style={{ margin: 0 }}>Room Assignment List</Title>
+            <Button type="primary" size="large" onClick={() => setIsCreateOpen(true)}>
+              Assign Amenities
+            </Button>
           </div>
+          
           <AdminRoomAmenityList 
             data={data} 
             loading={loading}
-            pagination={{ current: page + 1, pageSize: size, total: totalPages * size }}
-            onTableChange={(p) => { setPage(p.current - 1); loadData(p.current - 1, p.pageSize); }}
+            // Pagination giờ đây Table sẽ tự tính dựa trên groupedData (số lượng phòng)
             onEdit={setEditingItem}
             onDelete={handleDelete}
           />
@@ -143,6 +164,8 @@ export default function AdminRoomAmenityPage() {
         loading={modalLoading}
         rooms={rooms}
         amenities={amenities}
+        // Truyền dữ liệu hiện có để Modal biết phòng nào đã có tiện ích gì
+        roomAmenitiesData={data} 
         onCancel={() => setIsCreateOpen(false)} 
         onSubmit={handleCreate} 
       />

@@ -27,3 +27,8 @@ export const deleteRoom = async (id) => {
   const response = await apiClient.delete(`/v1/rooms/${id}`);
   return response.data;
 };
+
+export const getRoomById = async (id) => {
+  const response = await apiClient.get(`/v1/rooms/${id}`);
+  return response.data;
+};
