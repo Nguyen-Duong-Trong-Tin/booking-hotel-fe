@@ -183,7 +183,13 @@ export default function RoomDetail() {
                     </div>
                   )}
                 </div>
-                <Button type="primary" size="large" block className="h-16 mt-4 rounded-2xl text-lg font-bold bg-blue-600 border-none shadow-lg shadow-blue-100">
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  className="h-16 mt-4 rounded-2xl text-lg font-bold bg-blue-600 border-none shadow-lg shadow-blue-100"
+                  onClick={() => navigate(`/rooms/${id}/booking`)}
+                >
                   Book This Room Now
                 </Button>
               </Space>

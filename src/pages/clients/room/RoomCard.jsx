@@ -1,14 +1,33 @@
 import { Card, Image, Tag, Typography } from "antd";
+import { useNavigate } from "react-router-dom";
 import { formatPrice, getStatusColor } from "./utils";
 
 const { Title, Text } = Typography;
 
 export default function RoomCard({ room }) {
+  const navigate = useNavigate();
   const presentative = (room.roomImages || []).find((img) => img.isPresentative);
   const imageUrl = presentative?.url || room.roomImages?.[0]?.url;
+  const handleOpenDetail = () => {
+    if (room?.id) {
+      navigate(`/rooms/${room.id}`);
+    }
+  };
 
   return (
-    <Card className="shadow-sm" size="small">
+    <Card
+      className="shadow-sm cursor-pointer"
+      size="small"
+      hoverable
+      onClick={handleOpenDetail}
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleOpenDetail();
+        }
+      }}
+    >
       <div className="flex gap-4">
         <div className="w-24">
           {imageUrl ? (

@@ -1,5 +1,9 @@
-import { Button, Layout, Typography } from "antd";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Button, Layout, Space, Typography } from "antd";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { getUsers } from "../../apis/userApi";
+import { clearTokens, getAccessToken } from "../../apis/tokenStorage";
+import { decodeJwtPayload } from "../../utils/auth";
 
 const { Header } = Layout;
 const { Title } = Typography;
@@ -12,7 +16,56 @@ const headerLinks = [
 ];
 
 export default function ClientHeader() {
-  const location = useLocation();
+  const navigate = useNavigate();
+  const accessToken = getAccessToken();
+  const payload = decodeJwtPayload(accessToken);
+  const userEmail = payload?.sub || "";
+  const isSignedIn = Boolean(accessToken);
+  const [fullName, setFullName] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadProfile = async () => {
+      if (!accessToken) {
+        if (isActive) {
+          setFullName("");
+        }
+        return;
+      }
+
+      if (!userEmail) {
+        if (isActive) {
+          setFullName("User");
+        }
+        return;
+      }
+
+      try {
+        const response = await getUsers({ page: 0, size: 1, email: userEmail });
+        const items = response?.data?.items || response?.items || [];
+        const user = items[0];
+        if (isActive) {
+          setFullName(user?.fullName || userEmail || "User");
+        }
+      } catch (error) {
+        if (isActive) {
+          setFullName(userEmail || "User");
+        }
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isActive = false;
+    };
+  }, [accessToken, userEmail]);
+
+  const handleLogout = () => {
+    clearTokens();
+    navigate("/", { replace: true });
+  };
 
   return (
     <Header className="bg-white border-b border-slate-200 flex items-center px-0">
@@ -67,14 +120,27 @@ export default function ClientHeader() {
           </nav>
         </div>
 
-        <Link to="/admin/login">
-          <Button 
-            type="primary" 
-            className="rounded-full px-6 font-bold bg-blue-600 hover:bg-blue-700 border-none shadow-md shadow-blue-100"
-          >
-            Admin Login
-          </Button>
-        </Link>
+        <Space>
+          {isSignedIn ? (
+            <Space className="rounded-full bg-slate-50 px-3 py-1">
+              <span className="text-sm font-semibold text-slate-700">
+                {fullName || "User"}
+              </span>
+              <Button size="small" onClick={handleLogout}>
+                Logout
+              </Button>
+            </Space>
+          ) : (
+            <Link to="/login">
+              <Button
+                type="primary"
+                className="rounded-full px-6 font-bold bg-blue-600 hover:bg-blue-700 border-none shadow-md shadow-blue-100"
+              >
+                Sign in
+              </Button>
+            </Link>
+          )}
+        </Space>
       </div>
     </Header>
   );

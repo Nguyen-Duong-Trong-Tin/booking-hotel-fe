@@ -1,7 +1,10 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/clients/home";
+import ClientLogin from "./pages/clients/auth/ClientLogin";
+import ClientRegister from "./pages/clients/auth/ClientRegister";
 import Rooms from "./pages/clients/room";
 import RoomDetail from "./pages/clients/room/RoomDetail";
+import RoomBooking from "./pages/clients/booking/RoomBooking";
 import AdminLogin from "./pages/admins/auth/AdminLogin";
 import AdminDashboard from "./pages/admins/dashboard/AdminDashboard";
 import AdminCategoryPage from "./pages/admins/categories";
@@ -19,8 +22,11 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<ClientLogin />} />
+        <Route path="/register" element={<ClientRegister />} />
         <Route path="/rooms" element={<Rooms />} />
         <Route path="/rooms/:id" element={<RoomDetail />} />
+        <Route path="/rooms/:id/booking" element={<RoomBooking />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboard />} />
