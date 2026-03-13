@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/clients/home";
+import Destinations from "./pages/clients/destinations";
 import ClientLogin from "./pages/clients/auth/ClientLogin";
 import ClientRegister from "./pages/clients/auth/ClientRegister";
 import Rooms from "./pages/clients/room";
@@ -22,6 +23,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/destinations" element={<Destinations />} />
         <Route path="/login" element={<ClientLogin />} />
         <Route path="/register" element={<ClientRegister />} />
         <Route path="/rooms" element={<Rooms />} />

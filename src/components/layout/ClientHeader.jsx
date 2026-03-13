@@ -9,7 +9,7 @@ const { Header } = Layout;
 const { Title } = Typography;
 
 const headerLinks = [
-  { label: "Destinations", href: "#destinations" },
+  { label: "Destinations", to: "/destinations" },
   { label: "Rooms", to: "/rooms" }, // Link nội bộ dùng NavLink
   { label: "Deals", href: "#deals" },
   { label: "About", href: "#about" }
