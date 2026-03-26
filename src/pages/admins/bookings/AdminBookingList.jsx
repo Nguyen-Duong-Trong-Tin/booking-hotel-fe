@@ -52,6 +52,7 @@ export default function AdminBookingList({
       key: "status",
       render: (status) => {
         let color = status === "CONFIRMED" ? "green" : "gold";
+        if (status === "COMPLETED") color = "blue";
         if (status === "CANCELLED") color = "red";
         return <Tag color={color}>{status}</Tag>;
       },

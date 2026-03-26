@@ -16,7 +16,7 @@ export default function RoomCard({ room }) {
 
   return (
     <Card
-      className="shadow-sm cursor-pointer"
+      className="rounded-2xl border border-slate-200 bg-white shadow-sm cursor-pointer"
       size="small"
       hoverable
       onClick={handleOpenDetail}
@@ -55,7 +55,7 @@ export default function RoomCard({ room }) {
             {room.category?.name || "General"} · Capacity {room.capacity || "N/A"}
           </Text>
           <div className="mt-2">
-            <Text className="font-semibold text-green-600">{formatPrice(room.price)}</Text>
+            <Text className="font-semibold text-cyan-700">{formatPrice(room.price)}</Text>
           </div>
         </div>
       </div>

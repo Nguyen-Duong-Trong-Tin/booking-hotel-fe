@@ -5,6 +5,7 @@ export const getRoles = async ({ page, size, name, description }) => {
     params: {
       page,
       size,
+      sort: "id,desc",
       name: name || undefined,
       description: description || undefined
     }

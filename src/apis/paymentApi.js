@@ -9,6 +9,7 @@ export const getPayments = async ({ page, size, paymentMethod, status, paymentDa
     params: {
       page,
       size,
+      sort: "id,desc",
       paymentMethod: paymentMethod || undefined,
       status: status || undefined,
       paymentDate: paymentDate || undefined,

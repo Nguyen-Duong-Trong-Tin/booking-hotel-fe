@@ -12,6 +12,10 @@ import ClientHeader from "../../../components/layout/ClientHeader";
 import ClientFooter from "../../../components/layout/ClientFooter";
 import { getRoomById, getRooms } from "../../../apis/roomApi";
 import { getRoomAmenities } from "../../../apis/roomAmenityApi"; 
+import { getBookings } from "../../../apis/bookingApi";
+import { getUsers } from "../../../apis/userApi";
+import { getAccessToken } from "../../../apis/tokenStorage";
+import { decodeJwtPayload } from "../../../utils/auth";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -25,6 +29,7 @@ export default function RoomDetail() {
   const [amenities, setAmenities] = useState([]); 
   const [relatedRooms, setRelatedRooms] = useState([]); 
   const [loading, setLoading] = useState(true);
+  const [bookingForUser, setBookingForUser] = useState(null);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -59,6 +64,28 @@ export default function RoomDetail() {
           
         setRelatedRooms(filteredRelated);
 
+        // 3. Nếu đã đăng nhập, kiểm tra user có booking phòng này không
+        const accessToken = getAccessToken();
+        if (accessToken) {
+          const payload = decodeJwtPayload(accessToken);
+          const userEmail = payload?.sub;
+          if (userEmail) {
+            const userRes = await getUsers({ page: 0, size: 1, email: userEmail });
+            const userItems = userRes?.data?.items || userRes?.items || [];
+            const currentUser = userItems[0];
+            if (currentUser?.id) {
+              const bookingRes = await getBookings({
+                page: 0,
+                size: 1,
+                userId: currentUser.id,
+                roomId: currentRoom.id
+              });
+              const bookingItems = bookingRes?.data?.items || bookingRes?.items || [];
+              setBookingForUser(bookingItems[0] || null);
+            }
+          }
+        }
+
       } catch (error) {
         console.error("Error:", error);
         message.error("Không thể tải thông tin phòng.");
@@ -74,7 +101,7 @@ export default function RoomDetail() {
 
   if (loading) {
     return (
-      <div className="h-screen flex justify-center items-center bg-white">
+      <div className="h-screen flex justify-center items-center bg-slate-50">
         <Spin size="large" tip="Đang tìm kiếm không gian tương tự..." />
       </div>
     );
@@ -83,20 +110,20 @@ export default function RoomDetail() {
   const images = room?.roomImages || [];
 
   return (
-    <Layout className="min-h-screen bg-white">
+    <Layout className="min-h-screen bg-slate-50 text-slate-900">
       <ClientHeader />
       <Content className="max-w-7xl mx-auto w-full px-4 py-8">
         <Button 
           icon={<ArrowLeftOutlined />} 
           onClick={() => navigate("/rooms")} 
-          className="mb-6 border-none shadow-none text-slate-500 hover:text-blue-600 flex items-center p-0"
+          className="mb-6 border-none shadow-none text-slate-500 hover:text-cyan-700 flex items-center p-0"
         >
           Back to Accommodations
         </Button>
 
         <Row gutter={[32, 32]}>
           <Col xs={24} lg={14}>
-            <div className="relative group rounded-3xl overflow-hidden shadow-sm bg-slate-50">
+            <div className="relative group rounded-3xl overflow-hidden shadow-sm bg-white">
                <Button 
                   shape="circle"
                   icon={<LeftOutlined />}
@@ -121,7 +148,7 @@ export default function RoomDetail() {
                   onClick={() => carouselRef.current.next()}
                />
                {images.length > 1 && (
-                 <div className="p-4 flex gap-4 overflow-x-auto bg-white border-t border-slate-100 no-scrollbar">
+                 <div className="p-4 flex gap-4 overflow-x-auto bg-white border-t border-slate-200 no-scrollbar">
                     {images.map((img, index) => (
                       <img 
                         key={img.id} src={img.url} alt="thumb"
@@ -135,28 +162,28 @@ export default function RoomDetail() {
           </Col>
 
           <Col xs={24} lg={10}>
-            <Card className="border-slate-100 shadow-sm rounded-3xl sticky top-8">
+            <Card className="border-slate-200 shadow-sm rounded-3xl sticky top-8">
               <Space direction="vertical" size="large" className="w-full">
                 <div>
-                  <Tag color="blue" className="uppercase font-bold px-3 py-0.5 rounded-full mb-3 border-none">
+                  <Tag color="cyan" className="uppercase font-bold px-3 py-0.5 rounded-full mb-3 border-none">
                     {room?.category?.name}
                   </Tag>
                   <Title level={1} className="!mt-0 !mb-0 text-slate-800">Room {room?.roomNumber}</Title>
                 </div>
                 <div className="flex items-center">
-                  <Text className="text-4xl font-black text-blue-600">${room?.price?.toLocaleString()}</Text>
+                  <Text className="text-4xl font-black text-cyan-700">${room?.price?.toLocaleString()}</Text>
                 </div>
                 <Divider className="my-0" />
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <UserOutlined className="text-blue-500 text-xl" />
+                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                    <UserOutlined className="text-cyan-600 text-xl" />
                     <div className="flex flex-col">
                       <Text className="text-[10px] text-slate-400 uppercase font-black tracking-wider mb-0.5">Capacity</Text>
                       <Text strong className="text-base text-slate-700 leading-tight">{room?.capacity} Persons</Text>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <HomeOutlined className="text-purple-500 text-xl" />
+                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                    <HomeOutlined className="text-cyan-600 text-xl" />
                     <div className="flex flex-col">
                       <Text className="text-[10px] text-slate-400 uppercase font-black tracking-wider mb-0.5">Category</Text>
                       <Text strong className="text-base text-slate-700 leading-tight">{room?.category?.name}</Text>
@@ -164,7 +191,7 @@ export default function RoomDetail() {
                   </div>
                 </div>
                 <div>
-                  <Title level={5} className="mb-4 text-slate-600">Room Amenities</Title>
+                  <Title level={5} className="mb-4 text-slate-700">Room Amenities</Title>
                   {amenities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-y-4">
                       {amenities.map((item) => (
@@ -183,15 +210,34 @@ export default function RoomDetail() {
                     </div>
                   )}
                 </div>
-                <Button
-                  type="primary"
-                  size="large"
-                  block
-                  className="h-16 mt-4 rounded-2xl text-lg font-bold bg-blue-600 border-none shadow-lg shadow-blue-100"
-                  onClick={() => navigate(`/rooms/${id}/booking`)}
-                >
-                  Book This Room Now
-                </Button>
+                {bookingForUser ? (
+                  <div className="pt-2">
+                    <Tag color="cyan" className="mb-3 border-none">
+                      Your booking: {bookingForUser?.status || "PENDING"}
+                    </Tag>
+                    <Button
+                      type="primary"
+                      size="large"
+                      block
+                      className="h-16 rounded-2xl text-lg font-bold bg-cyan-600 border-none shadow-lg shadow-cyan-100"
+                      onClick={() => navigate("/my-rooms")}
+                    >
+                      View Your Booking
+                    </Button>
+                  </div>
+                ) : (
+                  room?.status !== "BOOKED" && (
+                    <Button
+                      type="primary"
+                      size="large"
+                      block
+                      className="h-16 mt-4 rounded-2xl text-lg font-bold bg-cyan-600 border-none shadow-lg shadow-cyan-100"
+                      onClick={() => navigate(`/rooms/${id}/booking`)}
+                    >
+                      Book This Room Now
+                    </Button>
+                  )
+                )}
               </Space>
             </Card>
           </Col>
@@ -216,7 +262,7 @@ export default function RoomDetail() {
                       cover={
                         <div className="relative h-48 overflow-hidden">
                           <img alt="room" src={rMainImg || "https://via.placeholder.com/400x300"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                          <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="absolute inset-0 bg-cyan-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Button shape="circle" icon={<EyeOutlined />} size="large" onClick={() => navigate(`/rooms/${r.id}`)} />
                           </div>
                         </div>
@@ -226,13 +272,13 @@ export default function RoomDetail() {
                       <div className="flex flex-col gap-2">
                         <div className="flex justify-between items-center">
                           <Text strong className="text-base">Room {r.roomNumber}</Text>
-                          <Text className="text-blue-600 font-black">${r.price?.toLocaleString()}</Text>
+                          <Text className="text-cyan-700 font-black">${r.price?.toLocaleString()}</Text>
                         </div>
                         <div className="flex justify-between items-center">
                           <Space className="text-slate-400 text-[11px] font-bold uppercase tracking-tighter">
                             <UserOutlined /> {r.capacity} Persons
                           </Space>
-                          <Tag className="mr-0 border-none bg-blue-50 text-blue-500 text-[10px] font-bold">
+                          <Tag className="mr-0 border-none bg-cyan-50 text-cyan-700 text-[10px] font-bold">
                             {r.category?.name}
                           </Tag>
                         </div>

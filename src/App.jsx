@@ -3,9 +3,13 @@ import Home from "./pages/clients/home";
 import Destinations from "./pages/clients/destinations";
 import ClientLogin from "./pages/clients/auth/ClientLogin";
 import ClientRegister from "./pages/clients/auth/ClientRegister";
+import CompleteProfile from "./pages/clients/auth/CompleteProfile";
+import GoogleCallback from "./pages/clients/auth/GoogleCallback";
 import Rooms from "./pages/clients/room";
 import RoomDetail from "./pages/clients/room/RoomDetail";
 import RoomBooking from "./pages/clients/booking/RoomBooking";
+import MyBookings from "./pages/clients/booking/MyBookings";
+import OnlinePayment from "./pages/clients/payment/OnlinePayment";
 import AdminLogin from "./pages/admins/auth/AdminLogin";
 import AdminDashboard from "./pages/admins/dashboard/AdminDashboard";
 import AdminCategoryPage from "./pages/admins/categories";
@@ -26,9 +30,13 @@ export default function App() {
         <Route path="/destinations" element={<Destinations />} />
         <Route path="/login" element={<ClientLogin />} />
         <Route path="/register" element={<ClientRegister />} />
+        <Route path="/complete-profile" element={<CompleteProfile />} />
+        <Route path="/google/callback" element={<GoogleCallback />} />
         <Route path="/rooms" element={<Rooms />} />
         <Route path="/rooms/:id" element={<RoomDetail />} />
         <Route path="/rooms/:id/booking" element={<RoomBooking />} />
+        <Route path="/my-rooms" element={<MyBookings />} />
+        <Route path="/payments/online" element={<OnlinePayment />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboard />} />

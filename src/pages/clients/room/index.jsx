@@ -117,21 +117,21 @@ export default function Rooms() {
   };
 
   return (
-    <Layout className="min-h-screen">
+    <Layout className="min-h-screen bg-slate-50 text-slate-900">
       <ClientHeader />
       <Content className="px-4 py-10">
         <div className="w-full max-w-6xl mx-auto">
-          <Title level={2} className="!mb-2">
+          <Title level={2} className="!mb-2 text-slate-900">
             Rooms
           </Title>
-          <Text type="secondary">Chat with the assistant to filter the room list below.</Text>
+          <Text className="text-slate-600">Chat with the assistant to filter the room list below.</Text>
 
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
-            <Card className="shadow-sm" title="Available rooms">
+            <Card className="rounded-3xl border border-slate-200 shadow-sm" title="Available rooms">
               <RoomsByCategory rooms={filteredRooms} loading={roomsLoading} error={roomsError} />
             </Card>
 
-            <Card className="shadow-sm" title="AI room search">
+            <Card className="rounded-3xl border border-slate-200 shadow-sm" title="AI room search">
               <AiChatPanel
                 message={message}
                 onMessageChange={setMessage}

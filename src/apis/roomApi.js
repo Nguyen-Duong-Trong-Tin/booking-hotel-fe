@@ -5,6 +5,7 @@ export const getRooms = async ({ page, size, roomNumber, status, categoryName })
     params: {
       page,
       size,
+      sort: "id,desc",
       roomNumber: roomNumber || undefined,
       status: status || undefined,
       categoryName: categoryName || undefined,

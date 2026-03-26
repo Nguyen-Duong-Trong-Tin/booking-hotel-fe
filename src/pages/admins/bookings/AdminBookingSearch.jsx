@@ -36,7 +36,7 @@ export default function AdminBookingSearch({ rooms = [], onSearch }) {
             <Select placeholder="All Rooms" allowClear style={{ width: '100%' }}>
               {safeRooms.map((r) => (
                 <Select.Option key={r.id} value={r.id}>
-                  Room {r.roomNumber} ({r.roomType})
+                  Room {r.roomNumber}
                 </Select.Option>
               ))}
             </Select>
@@ -49,6 +49,7 @@ export default function AdminBookingSearch({ rooms = [], onSearch }) {
               <Select.Option value="PENDING">Pending</Select.Option>
               <Select.Option value="CONFIRMED">Confirmed</Select.Option>
               <Select.Option value="CANCELLED">Cancelled</Select.Option>
+              <Select.Option value="COMPLETED">Completed</Select.Option>
             </Select>
           </Form.Item>
         </Col>

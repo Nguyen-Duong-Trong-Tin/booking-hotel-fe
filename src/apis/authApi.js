@@ -10,6 +10,7 @@ export const loginClient = async ({ email, password }) => {
   return response.data;
 };
 
+
 export const registerClient = async ({ fullName, email, phone, password }) => {
   const response = await apiClient.post("/v1/auth/register", {
     fullName,

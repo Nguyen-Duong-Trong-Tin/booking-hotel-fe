@@ -27,7 +27,10 @@ import { toast } from "react-toastify";
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
-const BOOKING_STATUSES = ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"];
+const PAYMENT_METHODS = [
+  { label: "Pay in cash", value: "CASH" },
+  { label: "Pay online", value: "ONLINE" }
+];
 
 const toNumber = (value) => {
   if (value === null || value === undefined || value === "") {
@@ -133,16 +136,37 @@ export default function RoomBooking() {
       return;
     }
 
-    const payload = {
-      checkIn: values.checkIn,
-      checkOut: values.checkOut,
-      totalPrice: values.totalPrice,
-      status: values.status,
-      userId,
-      roomId: values.roomId
-    };
-
     try {
+      if (values.paymentMethod === "ONLINE") {
+        navigate("/payments/online", {
+          state: {
+            roomId: values.roomId,
+            roomNumber: room?.roomNumber,
+            roomImageUrl:
+              room?.roomImages?.find((img) => img?.isPresentative)?.url ||
+              room?.roomImages?.[0]?.url ||
+              "",
+            latitude: room?.latitude ?? null,
+            longitude: room?.longitude ?? null,
+            totalPrice: values.totalPrice,
+            checkIn: values.checkIn,
+            checkOut: values.checkOut,
+            userId
+          }
+        });
+        return;
+      }
+
+      const payload = {
+        checkIn: values.checkIn,
+        checkOut: values.checkOut,
+        totalPrice: values.totalPrice,
+        status: "PENDING",
+        paymentMethod: values.paymentMethod,
+        userId,
+        roomId: values.roomId
+      };
+
       setSubmitting(true);
       const response = await createBooking(payload);
       if (response?.status !== 200 && response?.status !== 201) {
@@ -166,7 +190,7 @@ export default function RoomBooking() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Spin size="large" tip="Loading booking form..." />
       </div>
     );
@@ -182,23 +206,23 @@ export default function RoomBooking() {
     .filter(Boolean);
 
   return (
-    <Layout className="min-h-screen bg-white">
+    <Layout className="min-h-screen bg-slate-50 text-slate-900">
       <ClientHeader />
       <Content className="max-w-5xl mx-auto w-full px-4 py-10">
-        <Title level={2} className="!mb-2">
+        <Title level={2} className="!mb-2 text-slate-900">
           Book Room {room?.roomNumber}
         </Title>
-        <Text type="secondary">Fill out the booking details below.</Text>
+        <Text className="text-slate-600">Fill out the booking details below.</Text>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <Card className="shadow-sm">
+          <Card className="rounded-3xl border border-slate-200 shadow-sm">
             <Form
               form={form}
               layout="vertical"
               onFinish={handleSubmit}
               onValuesChange={handleValuesChange}
               initialValues={{
-                status: "PENDING",
+                paymentMethod: "CASH",
                 roomId: id,
                 totalPrice: 0
               }}
@@ -228,16 +252,11 @@ export default function RoomBooking() {
               </Form.Item>
 
               <Form.Item
-                label="Status"
-                name="status"
-                rules={[{ required: true, message: "Status is required" }]}
+                label="Payment method"
+                name="paymentMethod"
+                rules={[{ required: true, message: "Payment method is required" }]}
               >
-                <Select
-                  options={BOOKING_STATUSES.map((status) => ({
-                    label: status,
-                    value: status
-                  }))}
-                />
+                <Select options={PAYMENT_METHODS} />
               </Form.Item>
 
               <Form.Item
@@ -249,7 +268,7 @@ export default function RoomBooking() {
               </Form.Item>
 
               <Space className="w-full" direction="vertical" size="small">
-                <Text type="secondary">
+                <Text className="text-slate-500">
                   {nights > 0
                     ? `${nights} night(s) x ${pricePerNight.toLocaleString()} = ${(
                         nights * pricePerNight
@@ -262,14 +281,19 @@ export default function RoomBooking() {
 
               <Space className="w-full" size="middle">
                 <Button onClick={() => navigate(`/rooms/${id}`)}>Back</Button>
-                <Button type="primary" htmlType="submit" loading={submitting}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={submitting}
+                  className="bg-cyan-600 border-none"
+                >
                   Confirm Booking
                 </Button>
               </Space>
             </Form>
           </Card>
 
-          <Card className="shadow-sm">
+          <Card className="rounded-3xl border border-slate-200 shadow-sm">
             <Space direction="vertical" size="middle" className="w-full">
               <div className="overflow-hidden rounded-xl bg-slate-100">
                 <Image.PreviewGroup items={previewImages.length ? previewImages : [mainImage]}>

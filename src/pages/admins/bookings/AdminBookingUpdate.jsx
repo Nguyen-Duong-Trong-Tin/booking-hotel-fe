@@ -90,6 +90,7 @@ export default function AdminBookingUpdate({ open, initialValues, rooms = [], us
             <Select.Option value="PENDING">Pending</Select.Option>
             <Select.Option value="CONFIRMED">Confirmed</Select.Option>
             <Select.Option value="CANCELLED">Cancelled</Select.Option>
+            <Select.Option value="COMPLETED">Completed</Select.Option>
           </Select>
         </Form.Item>
       </Form>

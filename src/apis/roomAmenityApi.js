@@ -8,6 +8,7 @@ export const getRoomAmenities = async ({ page, size, roomId, amenityId, descript
     params: {
       page,
       size,
+      sort: "id,desc",
       roomId: roomId || undefined,
       amenityId: amenityId || undefined,
       description: description || undefined,

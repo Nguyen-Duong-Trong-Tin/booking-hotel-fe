@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Button, Card, Space, Typography, message } from "antd";
+import { Button, Card, Descriptions, Image, Modal, Space, Tag, Typography, message } from "antd";
 import AdminLayout from "../auth/AdminLayout";
 import AdminBookingList from "./AdminBookingList";
 import AdminBookingSearch from "./AdminBookingSearch";
 import AdminBookingCreate from "./AdminBookingCreate";
 import AdminBookingUpdate from "./AdminBookingUpdate";
+import AdminBookingQrScanner from "./AdminBookingQrScanner";
 
 import { 
   getBookings, 
@@ -12,9 +13,11 @@ import {
   createBooking, 
   updateBooking,
   deleteBooking,
-  updateBookingStatus 
+  updateBookingStatus,
+  getBookingById
 } from "../../../apis/bookingApi";
 import { getUsers } from "../../../apis/userApi";
+import { getRoomAmenities } from "../../../apis/roomAmenityApi";
 
 const { Title, Text } = Typography;
 const DEFAULT_PAGE_SIZE = 10;
@@ -38,6 +41,10 @@ export default function AdminBookingPage() {
   const [filters, setFilters] = useState({ roomId: null, status: null, checkIn: null, checkOut: null });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
+  const [isScanOpen, setIsScanOpen] = useState(false);
+  const [scannedBooking, setScannedBooking] = useState(null);
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanAmenities, setScanAmenities] = useState([]);
 
   const pagination = useMemo(() => {
     return {
@@ -150,6 +157,48 @@ export default function AdminBookingPage() {
     }
   };
 
+  const parseBookingId = (text) => {
+    const match = String(text).match(/\d+/);
+    return match ? Number(match[0]) : null;
+  };
+
+  const handleScanResult = async (text) => {
+    const bookingId = parseBookingId(text);
+    if (!bookingId) {
+      messageApi.error("Invalid booking QR code.");
+      return;
+    }
+
+    setScanLoading(true);
+    try {
+      const response = await getBookingById(bookingId);
+      const booking = response?.data || response;
+      const roomId = booking?.room?.id;
+      let amenities = [];
+
+      if (roomId) {
+        const amenityRes = await getRoomAmenities({ page: 0, size: 100, roomId });
+        const spec = amenityRes?.data;
+        amenities = spec?.items || spec?.content || spec || [];
+      }
+
+      setScannedBooking(booking);
+      setScanAmenities(Array.isArray(amenities) ? amenities : []);
+      setIsScanOpen(false);
+    } catch (error) {
+      messageApi.error("Booking not found.");
+    } finally {
+      setScanLoading(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    if (status === "CONFIRMED") return "green";
+    if (status === "COMPLETED") return "blue";
+    if (status === "CANCELLED") return "red";
+    return "gold";
+  };
+
   return (
     <AdminLayout>
       {contextHolder}
@@ -170,9 +219,14 @@ export default function AdminBookingPage() {
         <Card className="shadow-sm">
           <Space className="w-full justify-between" align="center" style={{ marginBottom: 16 }}>
             <Title level={4} className="!mb-0">Booking List</Title>
-            <Button type="primary" onClick={() => setIsCreateOpen(true)}>
-              New Booking
-            </Button>
+            <Space>
+              <Button onClick={() => setIsScanOpen(true)}>
+                Scan QR
+              </Button>
+              <Button type="primary" onClick={() => setIsCreateOpen(true)}>
+                New Booking
+              </Button>
+            </Space>
           </Space>
 
           <AdminBookingList 
@@ -208,6 +262,107 @@ export default function AdminBookingPage() {
         onCancel={() => setEditingBooking(null)} 
         onSubmit={handleUpdateFinish}
       />
+
+      <AdminBookingQrScanner
+        open={isScanOpen}
+        onClose={() => setIsScanOpen(false)}
+        onScan={handleScanResult}
+      />
+
+      <Modal
+        open={Boolean(scannedBooking)}
+        onCancel={() => setScannedBooking(null)}
+        footer={null}
+        title="Booking Details"
+        destroyOnClose
+      >
+        <Descriptions bordered column={1} size="small" loading={scanLoading}>
+          <Descriptions.Item label="Booking ID">
+            {scannedBooking?.id || "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Status">
+            <Tag color={getStatusColor(scannedBooking?.status)}>
+              {scannedBooking?.status || "N/A"}
+            </Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="Check-in">
+            {scannedBooking?.checkIn || "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Check-out">
+            {scannedBooking?.checkOut || "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Payment method">
+            {scannedBooking?.paymentMethod || "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Total price">
+            {scannedBooking?.totalPrice || "0"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Customer">
+            {scannedBooking?.user?.fullName || "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Customer email">
+            {scannedBooking?.user?.email || "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Room">
+            {scannedBooking?.room?.roomNumber ? `Room ${scannedBooking.room.roomNumber}` : "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Category">
+            {scannedBooking?.room?.category?.name || "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Capacity">
+            {scannedBooking?.room?.capacity ? `${scannedBooking.room.capacity} persons` : "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Room price">
+            {scannedBooking?.room?.price || "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Location">
+            {(scannedBooking?.room?.latitude != null && scannedBooking?.room?.longitude != null)
+              ? `${scannedBooking.room.latitude}, ${scannedBooking.room.longitude}`
+              : "N/A"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Room status">
+            {scannedBooking?.room?.status || "N/A"}
+          </Descriptions.Item>
+        </Descriptions>
+
+        <div className="mt-4">
+          <div className="font-semibold mb-2">Room Images</div>
+          {Array.isArray(scannedBooking?.room?.roomImages) && scannedBooking.room.roomImages.length > 0 ? (
+            <Image.PreviewGroup
+              items={scannedBooking.room.roomImages.map((img) => img.url).filter(Boolean)}
+            >
+              <Space wrap>
+                {scannedBooking.room.roomImages.map((img) => (
+                  <Image
+                    key={img.id}
+                    src={img.url}
+                    width={96}
+                    height={72}
+                    style={{ objectFit: "cover", borderRadius: 8 }}
+                  />
+                ))}
+              </Space>
+            </Image.PreviewGroup>
+          ) : (
+            <div className="text-slate-500">No images</div>
+          )}
+        </div>
+
+        <div className="mt-4">
+          <div className="font-semibold mb-2">Amenities</div>
+          {scanAmenities.length > 0 ? (
+            <Space wrap>
+              {scanAmenities.map((item) => (
+                <Tag key={item.id}>
+                  {item?.amenity?.name || "Amenity"}
+                </Tag>
+              ))}
+            </Space>
+          ) : (
+            <div className="text-slate-500">No amenities</div>
+          )}
+        </div>
+      </Modal>
     </AdminLayout>
   );
 }

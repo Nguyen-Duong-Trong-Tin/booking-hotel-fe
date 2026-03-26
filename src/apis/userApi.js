@@ -5,6 +5,7 @@ export const getUsers = async ({ page, size, fullName, email, phone, roleName })
     params: {
       page,
       size,
+      sort: "id,desc",
       fullName: fullName || undefined,
       email: email || undefined,
       phone: phone || undefined,
@@ -26,5 +27,10 @@ export const updateUser = async (id, data) => {
 
 export const deleteUser = async (id) => {
   const response = await apiClient.delete(`/v1/users/${id}`);
+  return response.data;
+};
+
+export const updateMyProfile = async (data) => {
+  const response = await apiClient.patch("/v1/users/me", data);
   return response.data;
 };

@@ -35,7 +35,7 @@ export default function RoomsByCategory({ rooms, loading, error }) {
     <div className="space-y-6">
       {groupedRooms.map(([categoryName, items]) => (
         <section key={categoryName}>
-          <Title level={4} className="!mb-3">
+          <Title level={4} className="!mb-3 text-slate-800">
             {categoryName}
           </Title>
           <div className="grid gap-4 md:grid-cols-2">

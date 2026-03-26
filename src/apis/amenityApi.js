@@ -5,6 +5,7 @@ export const getAmenities = async ({ page, size, name }) => {
     params: {
       page,
       size,
+      sort: "id,desc",
       name: name || undefined
     }
   });

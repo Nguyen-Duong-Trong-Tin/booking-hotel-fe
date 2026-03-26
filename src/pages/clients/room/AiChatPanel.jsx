@@ -24,7 +24,7 @@ export default function AiChatPanel({
           onChange={(event) => onMessageChange(event.target.value)}
         />
         <Space>
-          <Button type="primary" onClick={onSearch} loading={loading}>
+          <Button type="primary" onClick={onSearch} loading={loading} className="bg-cyan-600 border-none">
             Find rooms
           </Button>
           <Button onClick={onClear} disabled={!canClear}>
@@ -37,7 +37,7 @@ export default function AiChatPanel({
       {(answer || suggestions.length > 0) && (
         <div className="mt-4">
           {answer && (
-            <div className="rounded-md border border-gray-100 bg-gray-50 p-3">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <Text>{answer}</Text>
             </div>
           )}
@@ -45,7 +45,7 @@ export default function AiChatPanel({
           {suggestions.length > 0 && (
             <div className="mt-4 space-y-3">
               {suggestions.map((item) => (
-                <div key={`${item.roomId}-${item.roomNumber}`} className="rounded-md border p-3">
+                <div key={`${item.roomId}-${item.roomNumber}`} className="rounded-2xl border border-slate-200 bg-white p-3">
                   <div className="flex items-center justify-between">
                     <Text className="font-semibold">Room {item.roomNumber || item.roomId}</Text>
                     <Text type="secondary">{formatPrice(item.price)}</Text>

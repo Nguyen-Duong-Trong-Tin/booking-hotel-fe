@@ -2,7 +2,12 @@ import apiClient from "./httpClient";
 
 // 1. Lấy danh sách Booking - Gửi tham số theo BookingFindDto
 export const getBookings = async (params) => {
-  const response = await apiClient.get("/v1/bookings", { params });
+  const response = await apiClient.get("/v1/bookings", {
+    params: {
+      sort: "id,desc",
+      ...(params || {})
+    }
+  });
   return response.data;
 };
 
@@ -34,5 +39,10 @@ export const deleteBooking = async (id) => {
 // 6. Lấy danh sách phòng - Dùng để đổ dữ liệu vào ô chọn (Select) roomId
 export const getRooms = async () => {
   const response = await apiClient.get("/v1/rooms");
+  return response.data;
+};
+
+export const getBookingById = async (id) => {
+  const response = await apiClient.get(`/v1/bookings/${id}`);
   return response.data;
 };

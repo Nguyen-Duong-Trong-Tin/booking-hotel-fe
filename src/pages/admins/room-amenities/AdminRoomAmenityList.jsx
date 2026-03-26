@@ -25,6 +25,8 @@ export default function AdminRoomAmenityList({ data, loading, onTableChange, onD
       return acc;
     }, {})
   ).sort((a, b) => {
+    const roomIdCompare = (b.room?.id || 0) - (a.room?.id || 0);
+    if (roomIdCompare !== 0) return roomIdCompare;
     const catCompare = (a.room?.category?.name || "").localeCompare(b.room?.category?.name || "");
     if (catCompare !== 0) return catCompare;
     return (a.room?.roomNumber || "").localeCompare(b.room?.roomNumber || "", undefined, { numeric: true });

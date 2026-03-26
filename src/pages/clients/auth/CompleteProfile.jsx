@@ -1,45 +1,35 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  Button,
-  Card,
-  Form,
-  Input,
-  Layout,
-  Typography,
-  message
-} from "antd";
-import { registerClient } from "../../../apis/authApi";
+import { Button, Card, Form, Input, Layout, Typography, message } from "antd";
+import { useNavigate } from "react-router-dom";
 import ClientFooter from "../../../components/layout/ClientFooter";
 import ClientHeader from "../../../components/layout/ClientHeader";
+import { updateMyProfile } from "../../../apis/userApi";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
-export default function ClientRegister() {
+export default function CompleteProfile() {
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleFinish = async (values) => {
-    setIsSubmitting(true);
-
+    setLoading(true);
     try {
-      const response = await registerClient({
-        fullName: values.fullName?.trim(),
-        email: values.email?.trim(),
+      const response = await updateMyProfile({
+        fullName: values.fullName?.trim() || undefined,
         phone: values.phone?.trim(),
         password: values.password
       });
 
-      if (response?.status !== 200 && response?.status !== 201) {
-        messageApi.error(response?.message || "Registration failed");
+      if (!response?.data) {
+        messageApi.error(response?.message || "Update failed");
         return;
       }
 
-      messageApi.success("Registration successful. Please sign in.");
-      navigate("/login");
+      messageApi.success("Profile updated");
+      navigate("/");
     } catch (error) {
       const apiErrors = error?.response?.data?.errors;
       const apiMessage = error?.response?.data?.message;
@@ -47,10 +37,10 @@ export default function ClientRegister() {
       if (Array.isArray(apiErrors) && apiErrors.length > 0) {
         messageApi.error(apiErrors[0]);
       } else {
-        messageApi.error(apiMessage || "Registration failed");
+        messageApi.error(apiMessage || "Update failed");
       }
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -63,63 +53,45 @@ export default function ClientRegister() {
           <Card className="rounded-3xl border border-slate-200 shadow-lg">
             <div className="text-center mb-6">
               <Title level={3} className="!mb-1 text-slate-900">
-                Create Account
+                Complete Your Profile
               </Title>
               <Text className="text-slate-600">
-                Join Booking Hotel to complete your booking
+                Add the remaining details to continue.
               </Text>
             </div>
             <Form form={form} layout="vertical" onFinish={handleFinish}>
               <Form.Item
                 label="Full name"
                 name="fullName"
-                rules={[{ required: true, message: "Please enter your full name" }]}
+                rules={[{ max: 100, message: "Max 100 characters" }]}
               >
-                <Input placeholder="John Doe" />
-              </Form.Item>
-              <Form.Item
-                label="Email"
-                name="email"
-                rules={[
-                  { required: true, message: "Please enter your email" },
-                  { type: "email", message: "Please enter a valid email" }
-                ]}
-              >
-                <Input placeholder="you@example.com" />
+                <Input placeholder="Your full name" />
               </Form.Item>
               <Form.Item
                 label="Phone"
                 name="phone"
-                rules={[{ required: true, message: "Please enter your phone" }]}
+                rules={[{ required: true, message: "Phone is required" }]}
               >
-                <Input placeholder="0901234567" />
+                <Input placeholder="Phone number" />
               </Form.Item>
               <Form.Item
                 label="Password"
                 name="password"
-                rules={[
-                  { required: true, message: "Please enter your password" },
-                  { min: 6, message: "Password must be at least 6 characters" }
-                ]}
+                rules={[{ required: true, message: "Password is required" }]}
               >
-                <Input.Password placeholder="••••••••" />
+                <Input.Password placeholder="Create a password" />
               </Form.Item>
               <Button
                 type="primary"
                 htmlType="submit"
                 block
                 size="large"
-                loading={isSubmitting}
+                loading={loading}
                 className="bg-cyan-600 border-none"
               >
-                Create account
+                Save
               </Button>
             </Form>
-            <div className="mt-6 text-center">
-              <Text className="text-slate-600">
-                Already have an account? <Link to="/login">Sign in</Link>
-              </Text>
-            </div>
           </Card>
         </div>
       </Content>
