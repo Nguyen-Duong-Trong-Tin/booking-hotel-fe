@@ -32,8 +32,9 @@ export default function AdminRoute() {
     const payload = decodeJwtPayload(token);
     const role = payload?.role;
     const normalizedRole = typeof role === "string" ? role.toUpperCase() : "";
-    const hasAdminRole = normalizedRole === "ADMIN" || normalizedRole === "ROLE_ADMIN";
-    setIsAllowed(hasAdminRole);
+    const isAdmin = normalizedRole === "ADMIN" || normalizedRole === "ROLE_ADMIN";
+    const isEmployee = normalizedRole === "EMPLOYEE" || normalizedRole === "ROLE_EMPLOYEE";
+    setIsAllowed(isAdmin || isEmployee);
     setIsChecking(false);
   }, [token]);
 
