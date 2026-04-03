@@ -4,6 +4,7 @@ import { Button, Card, Divider, Layout, Space, Typography, message } from "antd"
 import ClientFooter from "../../../components/layout/ClientFooter";
 import ClientHeader from "../../../components/layout/ClientHeader";
 import { createBooking } from "../../../apis/bookingApi";
+import { updateRoom } from "../../../apis/roomApi";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -69,6 +70,8 @@ export default function OnlinePayment() {
           message.error(errorText);
           return;
         }
+
+        await updateRoom(roomId, { status: "BOOKED" });
 
         setCompleted(true);
         message.success("Payment received. Booking confirmed.");

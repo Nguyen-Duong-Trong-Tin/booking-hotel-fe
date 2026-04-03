@@ -210,32 +210,32 @@ export default function RoomDetail() {
                     </div>
                   )}
                 </div>
-                {bookingForUser ? (
-                  <div className="pt-2">
-                    <Tag color="cyan" className="mb-3 border-none">
-                      Your booking: {bookingForUser?.status || "PENDING"}
-                    </Tag>
-                    <Button
-                      type="primary"
-                      size="large"
-                      block
-                      className="h-16 rounded-2xl text-lg font-bold bg-cyan-600 border-none shadow-lg shadow-cyan-100"
-                      onClick={() => navigate("/my-rooms")}
-                    >
-                      View Your Booking
-                    </Button>
-                  </div>
+                {room?.status === "AVAILABLE" ? (
+                  <Button
+                    type="primary"
+                    size="large"
+                    block
+                    className="h-16 mt-4 rounded-2xl text-lg font-bold bg-cyan-600 border-none shadow-lg shadow-cyan-100"
+                    onClick={() => navigate(`/rooms/${id}/booking`)}
+                  >
+                    Book This Room Now
+                  </Button>
                 ) : (
-                  room?.status !== "BOOKED" && (
-                    <Button
-                      type="primary"
-                      size="large"
-                      block
-                      className="h-16 mt-4 rounded-2xl text-lg font-bold bg-cyan-600 border-none shadow-lg shadow-cyan-100"
-                      onClick={() => navigate(`/rooms/${id}/booking`)}
-                    >
-                      Book This Room Now
-                    </Button>
+                  bookingForUser?.status === "CONFIRMED" && (
+                    <div className="pt-2">
+                      <Tag color="cyan" className="mb-3 border-none">
+                        Your booking: {bookingForUser?.status || "PENDING"}
+                      </Tag>
+                      <Button
+                        type="primary"
+                        size="large"
+                        block
+                        className="h-16 rounded-2xl text-lg font-bold bg-cyan-600 border-none shadow-lg shadow-cyan-100"
+                        onClick={() => navigate("/my-rooms")}
+                      >
+                        View Your Booking
+                      </Button>
+                    </div>
                   )
                 )}
               </Space>

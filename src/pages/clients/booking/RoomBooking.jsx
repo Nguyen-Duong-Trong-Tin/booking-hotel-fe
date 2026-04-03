@@ -54,6 +54,14 @@ const getNights = (checkIn, checkOut) => {
   return diffDays > 0 ? diffDays : 0;
 };
 
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function RoomBooking() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -64,6 +72,7 @@ export default function RoomBooking() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [userId, setUserId] = useState(null);
+  const today = useMemo(() => getTodayDateString(), []);
 
   useEffect(() => {
     const ensureLoginAndLoad = async () => {
@@ -238,17 +247,49 @@ export default function RoomBooking() {
               <Form.Item
                 label="Check-in"
                 name="checkIn"
-                rules={[{ required: true, message: "Check-in date is required" }]}
+                rules={[
+                  { required: true, message: "Check-in date is required" },
+                  () => ({
+                    validator(_, value) {
+                      if (!value || value >= today) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error("Check-in date cannot be in the past")
+                      );
+                    }
+                  })
+                ]}
               >
-                <Input type="date" />
+                <Input type="date" min={today} />
               </Form.Item>
 
-              <Form.Item
-                label="Check-out"
-                name="checkOut"
-                rules={[{ required: true, message: "Check-out date is required" }]}
-              >
-                <Input type="date" />
+              <Form.Item shouldUpdate>
+                {() => {
+                  const checkInValue = form.getFieldValue("checkIn");
+                  const minCheckOut = checkInValue || today;
+                  return (
+                    <Form.Item
+                      label="Check-out"
+                      name="checkOut"
+                      rules={[
+                        { required: true, message: "Check-out date is required" },
+                        () => ({
+                          validator(_, value) {
+                            if (!value || value >= minCheckOut) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject(
+                              new Error("Check-out must be after check-in")
+                            );
+                          }
+                        })
+                      ]}
+                    >
+                      <Input type="date" min={minCheckOut} />
+                    </Form.Item>
+                  );
+                }}
               </Form.Item>
 
               <Form.Item
